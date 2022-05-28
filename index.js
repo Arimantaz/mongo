@@ -1,8 +1,8 @@
 require('dotenv').config();
-
+const cors = require('cors');
 const express = require('express');
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const uri = 'mongodb+srv://arimantas:jurjonas@cluster0.lvpet.mongodb.net/?retryWrites=true&w=majority';
 const client = new MongoClient(uri, {
@@ -12,6 +12,9 @@ const client = new MongoClient(uri, {
 });
 
 const app = express();
+
+app.use(express.json());
+app.use(cors());
 
 const knygos = [
   'Haris porteris',
@@ -38,12 +41,28 @@ app.get('/books/:id', (request, response) => {
 });
 
 app.post('/books', (request, response) => {
+  console.log(request.body);
   client.connect(async () => {
     const database = client.db('Knyguprojektas');
     const collection = database.collection('Knygos');
     const result = await collection.insertOne({
-      name: request.body.bookName,
-      pageCount: request.body.bookPageCount,
+      title: request.body.title,
+      pageCount: request.body.pageCount,
+      price: request.body.price,
+    });
+
+    response.json(result);
+
+    client.close();
+  });
+});
+
+app.delete('/books', (request, response) => {
+  client.connect(async () => {
+    const database = client.db('Knyguprojektas');
+    const collection = database.collection('Knygos');
+    const result = await collection.deleteOne({
+      _id: ObjectId(request.body.id),
     });
 
     response.json(result);
